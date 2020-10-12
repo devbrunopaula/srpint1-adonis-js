@@ -1,6 +1,9 @@
 "use strict";
 
 const Project = use("App/Models/Project");
+const Actions = use("App/Models/Action");
+const Database = use("Database");
+
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
@@ -42,7 +45,12 @@ class ProjectController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  async store({ request, response }) {
+    const data = request.post();
+
+    const newProject = await Project.create(data);
+    response.status(201).json(newProject);
+  }
 
   /**
    * Display a single project.
@@ -53,10 +61,9 @@ class ProjectController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show({ params, request, response, view }) {
-    const { id } = params;
-    const getProjectById = await Project.find(id);
-    response.status(200).json(getProjectById);
+  async show({ request, response, params, view }) {
+    const project = request.project;
+    response.status(200).json(project);
   }
 
   /**
@@ -79,8 +86,18 @@ class ProjectController {
    * @param {Response} ctx.response
    */
   async update({ params, request, response }) {
-    const { id } = params;
-    response.send(201).send(id);
+    const project = request.project;
+    const { name, description, completed } = request.post();
+
+    project.name = name;
+    project.description = description;
+    project.completed = completed;
+
+    const updatedItems = await project.save();
+    response.status(200).json({
+      message: "Successfully updated this project",
+      data: project,
+    });
   }
 
   /**
@@ -91,7 +108,32 @@ class ProjectController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async showActions({ params, request, response }) {
+    const { id } = params;
+
+    const result = await Database.select("*")
+      .from("actions")
+      .where("project_id", "=", id);
+
+    response.status(200).json(result);
+  }
+  /**
+   * Delete a project with id.
+   * DELETE projects/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async destroy({ params, request, response }) {
+    const project = request.project;
+
+    await project.delete();
+    response.status(200).json({
+      message: "Successfully deleted this project",
+      id: project.id,
+    });
+  }
 }
 
 module.exports = ProjectController;

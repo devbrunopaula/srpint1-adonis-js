@@ -21,3 +21,11 @@ Factory.blueprint("App/Models/Project", (faker) => {
     completed: false,
   };
 });
+
+Factory.blueprint("App/Models/Action", async (faker) => {
+  return {
+    project_id: 1,
+    description: faker.sentence({ words: 5 }),
+    notes: faker.sentence({ words: 7 }),
+  };
+});

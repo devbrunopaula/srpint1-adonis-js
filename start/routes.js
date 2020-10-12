@@ -1,5 +1,8 @@
 "use strict";
 
+const { route } = require("@adonisjs/framework/src/Route/Manager");
+const FindAction = require("../app/Middleware/FindAction");
+
 /*
 |--------------------------------------------------------------------------
 | Routes
@@ -17,5 +20,13 @@
 const Route = use("Route");
 
 Route.on("/").render("welcome");
-Route.get("/projects", "ProjectController.index");
-Route.get("/projects/:id", "ProjectController.show");
+// projects
+Route.resource("/projects", "ProjectController")
+  .middleware(new Map([[["show", "update", "destroy"], ["findProject"]]]))
+  .apiOnly();
+
+Route.resource("/actions", "ActionController")
+  .middleware(new Map([[["show", "update", "destroy"], ["findAction"]]]))
+  .apiOnly();
+
+Route.get("/projects/:id/actions", "ProjectController.showActions");
